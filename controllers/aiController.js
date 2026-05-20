@@ -1,15 +1,12 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-
 // Inicialización de la API de Google Gemini
 const apiKey = process.env.GEMINI_API_KEY;
 let genAI = null;
-
 if (apiKey && apiKey !== "tu_clave_gratuita_de_google_ai_studio_aqui") {
   genAI = new GoogleGenerativeAI(apiKey);
 } else {
   console.warn("⚠️ ADVERTENCIA: GEMINI_API_KEY no configurada o es el marcador de posición por defecto.");
 }
-
 /**
  * Helper para obtener el cliente de Gemini y validar su existencia
  */
@@ -23,27 +20,23 @@ const getGeminiClient = (res) => {
   }
   return genAI;
 };
-
 /**
  * Módulo de Matemáticas: Genera un ejercicio acorde al año escolar del alumno en formato LaTeX.
  */
 exports.generateMathProblem = async (req, res) => {
   const ai = getGeminiClient(res);
   if (!ai) return;
-
   const { grade } = req.body;
   if (!grade) {
     return res.status(400).json({ error: "El año escolar (grade) es requerido." });
   }
-
   try {
     const model = ai.getGenerativeModel({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.0-flash",
       generationConfig: {
         responseMimeType: "application/json",
       }
     });
-
     const prompt = `
       Eres un profesor de matemáticas de secundaria altamente didáctico y experto.
       Genera un problema de matemáticas único y desafiante adaptado para un estudiante de ${grade} de secundaria en Latinoamérica (rango de 12 a 17 años).
@@ -57,11 +50,9 @@ exports.generateMathProblem = async (req, res) => {
         "explanation": "La resolución paso a paso detallando el procedimiento y las fórmulas aplicadas, utilizando LaTeX/KaTeX."
       }
     `;
-
     const result = await model.generateContent(prompt);
     const responseText = result.response.text();
     const parsedJSON = JSON.parse(responseText);
-
     return res.json(parsedJSON);
   } catch (error) {
     console.error("Error en generateMathProblem:", error);
@@ -71,34 +62,29 @@ exports.generateMathProblem = async (req, res) => {
     });
   }
 };
-
 /**
  * Módulo de Física: Genera un problema didáctico en base al esquema estructurado de 4 pasos.
  */
 exports.generatePhysicsProblem = async (req, res) => {
   const ai = getGeminiClient(res);
   if (!ai) return;
-
   const { grade } = req.body;
   if (!grade) {
     return res.status(400).json({ error: "El año escolar (grade) es requerido." });
   }
-
   try {
     const model = ai.getGenerativeModel({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.0-flash",
       generationConfig: {
         responseMimeType: "application/json",
       }
     });
-
     const prompt = `
       Eres un profesor de física experto y didáctico.
       Genera un problema de física adaptado para un estudiante de ${grade} de secundaria en Latinoamérica.
       El problema debe estar enfocado en temas comunes de ese año escolar (ej. Cinemática, Dinámica, Energía, Termodinámica).
       Debes estructurar obligatoriamente la solución bajo el esquema formal de 4 pasos de física: Datos, Fórmula, Sustitución y Resultado.
       Usa LaTeX/KaTeX para escribir las fórmulas y unidades físicas (ej. \\\\(m/s^2\\\\), \\\\(F = m \\\\cdot a\\\\)).
-
       DEBES responder ÚNICAMENTE con un objeto JSON válido con la siguiente estructura exacta:
       {
         "problem": "El enunciado detallado del problema físico.",
@@ -109,11 +95,9 @@ exports.generatePhysicsProblem = async (req, res) => {
         "explanation": "Una breve explicación conceptual de por qué se resolvió así y la ley física que fundamenta el problema."
       }
     `;
-
     const result = await model.generateContent(prompt);
     const responseText = result.response.text();
     const parsedJSON = JSON.parse(responseText);
-
     return res.json(parsedJSON);
   } catch (error) {
     console.error("Error en generatePhysicsProblem:", error);
@@ -123,34 +107,28 @@ exports.generatePhysicsProblem = async (req, res) => {
     });
   }
 };
-
 /**
  * Módulo de Estudios Sociales: Genera un resumen e hitos en línea de tiempo sobre un tema específico.
  */
 exports.generateSocialTimeline = async (req, res) => {
   const ai = getGeminiClient(res);
   if (!ai) return;
-
   const { topic, grade } = req.body;
   if (!topic) {
     return res.status(400).json({ error: "El tema (topic) es requerido." });
   }
-
   const studentGrade = grade || "secundaria";
-
   try {
     const model = ai.getGenerativeModel({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.0-flash",
       generationConfig: {
         responseMimeType: "application/json",
       }
     });
-
     const prompt = `
       Eres un historiador y profesor de ciencias sociales de secundaria.
       Genera una síntesis educativa y una línea de tiempo estructurada para el tema: "${topic}", adaptado para un nivel de escolaridad de ${studentGrade}.
       La línea de tiempo debe componerse de al menos 4 a 6 hitos cronológicos clave (eventos) ordenados cronológicamente.
-
       DEBES responder ÚNICAMENTE con un objeto JSON válido con la siguiente estructura exacta:
       {
         "topic": "Título formal del tema histórico",
@@ -164,11 +142,9 @@ exports.generateSocialTimeline = async (req, res) => {
         ]
       }
     `;
-
     const result = await model.generateContent(prompt);
     const responseText = result.response.text();
     const parsedJSON = JSON.parse(responseText);
-
     return res.json(parsedJSON);
   } catch (error) {
     console.error("Error en generateSocialTimeline:", error);
@@ -178,7 +154,6 @@ exports.generateSocialTimeline = async (req, res) => {
     });
   }
 };
-
 /**
  * Tutor IA Socrático: Conversación académica socrática y paciente.
  * No le da la respuesta directa al estudiante, sino que le guía con preguntas de razonamiento.
@@ -186,14 +161,11 @@ exports.generateSocialTimeline = async (req, res) => {
 exports.chatWithTutor = async (req, res) => {
   const ai = getGeminiClient(res);
   if (!ai) return;
-
   const { message, history, grade } = req.body;
   if (!message) {
     return res.status(400).json({ error: "El mensaje del usuario (message) es requerido." });
   }
-
   const studentGrade = grade || "secundaria";
-
   try {
     // Configurar instrucciones del sistema para forzar el comportamiento socrático
     const systemInstruction = `
@@ -208,12 +180,10 @@ exports.chatWithTutor = async (req, res) => {
       5. Utiliza LaTeX/KaTeX (delimitado por \\\\( y \\\\)) para fórmulas matemáticas o químicas que menciones en tus respuestas para que se vean profesionales.
       6. Mantén tus respuestas relativamente concisas (máximo 2 a 3 párrafos cortos) para evitar abrumar al alumno.
     `;
-
     const model = ai.getGenerativeModel({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.0-flash",
       systemInstruction: systemInstruction
     });
-
     // Formatear el historial de chat para adaptarlo al formato del SDK de Gemini
     // El SDK espera: history: [ { role: "user", parts: [{ text: "..." }] }, { role: "model", parts: [{ text: "..." }] } ]
     const formattedHistory = [];
@@ -227,16 +197,13 @@ exports.chatWithTutor = async (req, res) => {
         }
       });
     }
-
     // Inicializar chat con historial anterior
     const chat = model.startChat({
       history: formattedHistory
     });
-
     // Enviar el mensaje del usuario y obtener respuesta
     const result = await chat.sendMessage(message);
     const responseText = result.response.text();
-
     return res.json({ reply: responseText });
   } catch (error) {
     console.error("Error en chatWithTutor:", error);
@@ -246,33 +213,28 @@ exports.chatWithTutor = async (req, res) => {
     });
   }
 };
-
 /**
  * Módulo de Inglés: Genera un cuestionario de opción múltiple estructurado en JSON.
  */
 exports.generateEnglishQuiz = async (req, res) => {
   const ai = getGeminiClient(res);
   if (!ai) return;
-
   const { grade, difficulty } = req.body;
   if (!grade || !difficulty) {
     return res.status(400).json({ error: "El año escolar (grade) y la dificultad (difficulty) son requeridos." });
   }
-
   try {
     const model = ai.getGenerativeModel({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.0-flash",
       generationConfig: {
         responseMimeType: "application/json",
       }
     });
-
     const prompt = `
       Eres un profesor de inglés nativo y experto en pedagogía para secundaria en Latinoamérica.
       Genera un cuestionario interactivo de opción múltiple con exactamente 5 preguntas únicas de inglés, adaptadas para un estudiante de ${grade} de secundaria.
       El nivel de dificultad seleccionado para este quiz es: "${difficulty}" (puedes variar entre gramática, vocabulario, lectura o comprensión).
       Cada pregunta debe tener exactamente 4 opciones de respuesta.
-
       DEBES responder ÚNICAMENTE con un objeto JSON válido con la siguiente estructura exacta:
       {
         "difficulty": "${difficulty}",
@@ -292,11 +254,9 @@ exports.generateEnglishQuiz = async (req, res) => {
         ]
       }
     `;
-
     const result = await model.generateContent(prompt);
     const responseText = result.response.text();
     const parsedJSON = JSON.parse(responseText);
-
     return res.json(parsedJSON);
   } catch (error) {
     console.error("Error en generateEnglishQuiz:", error);
@@ -306,34 +266,29 @@ exports.generateEnglishQuiz = async (req, res) => {
     });
   }
 };
-
 /**
  * Módulo de Química: Resuelve y explica didácticamente el balanceo de una ecuación por tanteo.
  */
 exports.balanceChemistryEquation = async (req, res) => {
   const ai = getGeminiClient(res);
   if (!ai) return;
-
   const { equation } = req.body;
   if (!equation) {
     return res.status(400).json({ error: "La ecuación química (equation) es requerida." });
   }
-
   try {
     const model = ai.getGenerativeModel({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.0-flash",
       generationConfig: {
         responseMimeType: "application/json",
       }
     });
-
     const prompt = `
       Eres un profesor de química didáctico y experto.
       El estudiante te ha dado una ecuación química desbalanceada: "${equation}".
       Tu objetivo es balancear la ecuación utilizando el método de balanceo por tanteo (ensayo y error).
       Debes desglosar el procedimiento en una secuencia lógica de pasos comprensibles para secundaria, explicando la ley de conservación de la masa.
       Usa LaTeX/KaTeX delimitado por \\\\( y \\\\) en las explicaciones químicas (por ejemplo, para denotar compuestos como \\\\(H_2O\\\\) o la ecuación final).
-
       DEBES responder ÚNICAMENTE con un objeto JSON válido con la siguiente estructura exacta:
       {
         "original_equation": "La ecuación original proporcionada",
@@ -347,11 +302,9 @@ exports.balanceChemistryEquation = async (req, res) => {
         "explanation": "Una conclusión pedagógica sobre cómo el balanceo cumple con la Ley de Conservación de la Materia de Lavoisier."
       }
     `;
-
     const result = await model.generateContent(prompt);
     const responseText = result.response.text();
     const parsedJSON = JSON.parse(responseText);
-
     return res.json(parsedJSON);
   } catch (error) {
     console.error("Error en balanceChemistryEquation:", error);
@@ -361,4 +314,3 @@ exports.balanceChemistryEquation = async (req, res) => {
     });
   }
 };
-
