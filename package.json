@@ -1,0 +1,24 @@
+{
+  "name": "gloma-ai-school",
+  "version": "1.0.0",
+  "description": "Plataforma educativa local-first gratuita con Google Gemini API",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": [
+    "education",
+    "gemini",
+    "local-first",
+    "socrative"
+  ],
+  "author": "Gerardo",
+  "license": "MIT",
+  "dependencies": {
+    "@google/generative-ai": "^0.11.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
+}
